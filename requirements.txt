@@ -1,0 +1,9 @@
+streamlit
+requests
+pandas
+numpy
+plotly
+openai
+langchain
+sqlalchemy
+duckduckgo-search
