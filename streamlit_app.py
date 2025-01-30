@@ -19,6 +19,7 @@ def get_openai_api_key():
     """
     Obtiene la API key de OpenAI desde Streamlit secrets o,
     si no está guardada ahí, se pide al usuario (texto).
+
     Ajusta según tu preferencia.
     """
     if "openai_api_key" in st.secrets:
@@ -156,12 +157,15 @@ def generate_investment_analysis(current_position, alternatives, api_key):
     prompt = f"""
     Eres un asesor DeFi experto.
     Analiza brevemente esta posición y posibles alternativas:
+
     Posición actual:
     - Token: {current_position['token_symbol']}
     - Protocolo: {current_position['common_name']}
     - Balance USD: ${format_number(current_position['balance_usd'])}
+
     Alternativas disponibles:
     {chr(10).join([f"- {alt['project']} en {alt['chain']}: {alt['symbol']} (APY: {alt['apy']:.2f}%, TVL: ${format_number(alt['tvlUsd'])})" for alt in alternatives])}
+
     Da un comentario conciso (máx 100 palabras) y una recomendación final.
     """
 
@@ -194,23 +198,9 @@ def init_chat_history():
         ]
 
 def render_chat():
-def generate_portfolio_summary(df):
     """
     Muestra el historial de mensajes y un input para que el usuario escriba.
-    Genera un resumen en texto que describe el portafolio.
     """
-    if df.empty:
-        return "El portafolio está vacío o no hay posiciones significativas."
-    summary_lines = []
-    summary_lines.append("Tu portafolio actual es:")
-    for i, row in df.iterrows():
-        summary_lines.append(
-            f"- {row['token_symbol']} en {row['common_name']} (Balance: ${row['balance_usd']:.2f})"
-        )
-    return "\n".join(summary_lines) 
-    
-def render_chat():
-    # Muestra mensajes anteriores
     for msg in st.session_state["messages"]:
         st.chat_message(msg["role"]).write(msg["content"])
 
@@ -218,7 +208,6 @@ def render_chat():
     user_input = st.chat_input("Escribe tu pregunta o solicitud aquí...")
     if user_input:
         # Agregar mensaje del usuario a la lista
-        # Añadir mensaje de usuario a la lista
         st.session_state["messages"].append({"role": "user", "content": user_input})
         st.chat_message("user").write(user_input)
 
@@ -226,46 +215,26 @@ def render_chat():
         # (puedes llamarle a OpenAI directamente, usar la data del DF, etc.)
         # Por ejemplo, supongamos que solo respondes con un placeholder...
         # O usas un approach "convencional" a la API de OpenAI con openai.Completion o ChatCompletion
+
         # Ejemplo simple (sin contexto real del DF):
         openai_api_key = get_openai_api_key()
         if not openai_api_key:
             ai_response = "Por favor, agrega tu OpenAI API key para continuar."
         else:
             # Llamada sencilla al modelo ChatCompletions
-            import openai
             openai.api_key = openai_api_key
-            # 1) Construimos la lista de mensajes para el modelo,
-            #    e inyectamos el CONTEXTO (el resumen del portafolio).
-            messages_for_model = [
-                {
-                    "role": "system",
-                    "content": (
-                        "Actúa como un experto en DeFi. "
-                        "Tienes el siguiente contexto del portafolio del usuario:\n\n"
-                        f"{st.session_state.get('portfolio_summary', 'No hay portafolio disponible.')}\n\n"
-                        "Usa esa información para responder."
-                    )
-                }
-            ]
-            # 2) Añadir todo el historial (para la conversación).
-            messages_for_model.extend(st.session_state["messages"])
-            # 3) Generar respuesta
             try:
                 completion = openai.ChatCompletion.create(
-                response = openai.Chat.create(
                     model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "Actúa como un experto en DeFi."},
                         *st.session_state["messages"]  # Incluir historial
                     ]
-                    messages=messages_for_model
                 )
                 ai_response = completion["choices"][0]["message"]["content"]
-                ai_response = response["choices"][0]["message"]["content"]
             except Exception as e:
                 ai_response = f"Error al generar respuesta: {e}"
 
-        # Agregar respuesta al historial
         st.session_state["messages"].append({"role": "assistant", "content": ai_response})
         st.chat_message("assistant").write(ai_response)
 
@@ -299,10 +268,6 @@ def main():
             result = get_user_defi_positions(wallet_address, merlin_api_key)
             if 'error' not in result:
                 df = process_defi_data(result)
-                if 'portfolio_summary' not in st.session_state:
-                    st.session_state['portfolio_summary'] = ""
-                
-                st.session_state['portfolio_summary'] = generate_portfolio_summary(df)
 
                 if not df.empty:
                     # Mostrar DF
