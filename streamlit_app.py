@@ -293,7 +293,7 @@ def main():
             if 'error' not in result:
                 if 'portfolio_summary' not in st.session_state:
                     st.session_state['portfolio_summary'] = ""
-                
+                df = process_defi_data(result)
                 st.session_state['portfolio_summary'] = generate_portfolio_summary(df)
 
                 if not df.empty:
