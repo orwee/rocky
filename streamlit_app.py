@@ -172,7 +172,7 @@ def generate_investment_analysis(current_position, alternatives, api_key):
     try:
         # Llamada al endpoint Chat GPT3.5 o GPT-4, ajusta según tu preferencia
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "Eres un asesor DeFi experto y muy conciso."},
                 {"role": "user", "content": prompt}
