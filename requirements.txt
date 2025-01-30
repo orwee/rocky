@@ -3,7 +3,7 @@ requests
 pandas
 numpy
 plotly
-openai
+openai==0.28.0
 langchain
 sqlalchemy
 duckduckgo-search
